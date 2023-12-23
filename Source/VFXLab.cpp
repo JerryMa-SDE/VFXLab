@@ -1,4 +1,5 @@
 #include "VFXLab.h"
+#include "EffectFactory.h"
 #include "Logging.h"
 
 VFXLab::VFXLab()
@@ -42,6 +43,13 @@ bool VFXLab::Init()
     m_frame->SetColorBuffer(m_renderTarget);
     m_frame->SetOverlay(m_guiContext->GetRenderTarget());
 
+    const auto& args = DirectMedia::Application::GetInstance()->GetCommandLineArgs();
+    if (args.size() > 1)
+    {
+        const rad::FilePath filePath = (const char8_t*)args[1].c_str();
+        LoadEffect(filePath);
+    }
+
     return true;
 }
 
@@ -77,13 +85,15 @@ void VFXLab::OnResized(int width, int height)
 
     m_device->WaitIdle();
     GetDrawableSize(&width, &height);
-
-    m_renderTarget = m_device->CreateImage2DRenderTarget(VK_FORMAT_R8G8B8A8_UNORM,
-        width, height, VK_IMAGE_USAGE_SAMPLED_BIT);
+    for (const auto& effect : m_effects)
+    {
+        effect->Resize(width, height);
+    }
 
     m_guiContext->Resize(width, height);
     m_frame->Resize(width, height);
-    m_frame->SetColorBuffer(m_renderTarget);
+
+    m_frame->SetColorBuffer(m_effects.back()->GetColorBuffer());
     m_frame->SetOverlay(m_guiContext->GetRenderTarget());
 }
 
@@ -115,6 +125,19 @@ void VFXLab::OnLeave()
 void VFXLab::OnKeyDown(const SDL_KeyboardEvent& keyDown)
 {
     LogGlobal(Info, "OnKeyDown: %s", SDL_GetKeyName(keyDown.keysym.sym));
+
+    if (keyDown.keysym.mod & KMOD_CTRL)
+    {
+        if (keyDown.keysym.sym == SDLK_o)
+        {
+            LogGlobal(Info, "OnKeyDown: Ctrl+O");
+        }
+    }
+
+    if (keyDown.keysym.sym == SDLK_ESCAPE)
+    {
+        Destroy();
+    }
 }
 
 void VFXLab::OnKeyUp(const SDL_KeyboardEvent& keyUp)
@@ -130,12 +153,20 @@ void VFXLab::OnMouseButtonDown(const SDL_MouseButtonEvent& mouseButton)
 {
     LogGlobal(Info, "OnMouseButtonDown: %s (%dx%d)",
         GetMouseButtonName(mouseButton.button), mouseButton.x, mouseButton.y);
+    for (auto& effect : m_effects)
+    {
+        effect->OnMouseButtonDown(mouseButton);
+    }
 }
 
 void VFXLab::OnMouseButtonUp(const SDL_MouseButtonEvent& mouseButton)
 {
     LogGlobal(Info, "OnMouseButtonUp: %s (%dx%d)",
         GetMouseButtonName(mouseButton.button), mouseButton.x, mouseButton.y);
+    for (auto& effect : m_effects)
+    {
+        effect->OnMouseButtonUp(mouseButton);
+    }
 }
 
 void VFXLab::OnMouseWheel(const SDL_MouseWheelEvent& mouseWheel)
@@ -149,6 +180,13 @@ void VFXLab::OnRender()
     if (!isMinimized)
     {
         m_frame->Begin();
+        for (const auto& effect : m_effects)
+        {
+            if (effect)
+            {
+                effect->Render();
+            }
+        }
         m_guiContext->NewFrame();
         m_guiContext->Render();
         m_guiContext->Submit();
@@ -167,4 +205,37 @@ const char* VFXLab::GetMouseButtonName(Uint8 button)
     case SDL_BUTTON_X2: return "SDL_BUTTON_X2";
     }
     return "SDL_BUTTON_UNKNOWN";
+}
+
+bool VFXLab::LoadEffect(const rad::FilePath& filePath)
+{
+    m_doc = RAD_NEW rad::JsonDoc();
+    if (rad::Exists(filePath) && m_doc->ParseFile(filePath))
+    {
+        rad::FilePath baseDir = rad::MakeAbsolute(filePath).remove_filename();
+        rad::JsonValueRef jRoot = m_doc->GetRoot();
+        rad::JsonValueRef jEffectNames = jRoot["Effects"];
+        if (jEffectNames && jEffectNames.IsArray())
+        {
+            for (const auto& jEffectName : jEffectNames.GetArray())
+            {
+                rad::JsonValueRef jEffect = jRoot[jEffectName.GetString()];
+                rad::Ref<Effect> effect = CreateEffect(this, jEffect["Type"].GetString());
+                if (effect)
+                {
+                    effect->Init(m_device.get(), m_backBufferCount);
+                    effect->SetBaseDirectory(baseDir);
+                    effect->Load(jEffect);
+                    m_effects.push_back(std::move(effect));
+                }
+            }
+        }
+    }
+
+    if (!m_effects.empty())
+    {
+        m_frame->SetColorBuffer(m_effects.back()->GetColorBuffer());
+    }
+
+    return true;
 }

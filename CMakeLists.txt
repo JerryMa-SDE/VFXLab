@@ -16,6 +16,15 @@ set(VFXLAB_SOURCE_FILES
     Source/VFXLab.cpp
     Source/Logging.h
     Source/Logging.cpp
+    Source/Effect.h
+    Source/Effect.cpp
+    Source/EffectFactory.h
+    Source/EffectFactory.cpp
+    Source/JsonDeserialize.h
+    Source/JsonDeserialize.cpp
+    Source/Shadertoy/Shadertoy.h
+    Source/Shadertoy/Shadertoy.cpp
+    Source/Shadertoy/ShadertoyLoad.cpp
 )
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VFXLAB_SOURCE_FILES})
 
@@ -53,6 +62,9 @@ add_custom_command(TARGET VFXLab POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E echo "Copy resources ..."
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${RADCPP_PATH}/libs/VulkanEngine/rad/VulkanEngine/Shaders/
+        ${CMAKE_CURRENT_BINARY_DIR}/Shaders/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/Source/Shaders/
         ${CMAKE_CURRENT_BINARY_DIR}/Shaders/
 )
 

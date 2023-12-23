@@ -1,0 +1,14 @@
+{
+    "Effects": [
+        "SimpleGradient"
+    ],
+    "SimpleGradient": {
+        "Type": "Shadertoy",
+        "Passes": [
+            "Image"
+        ],
+        "Image": {
+            "Shader": "SimpleGradient.frag"
+        }
+    }
+}

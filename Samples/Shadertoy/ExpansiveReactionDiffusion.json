@@ -1,0 +1,104 @@
+{
+    "Effects": [
+        "ExpansiveReactionDiffusion"
+    ],
+    "ExpansiveReactionDiffusion": {
+        "Description": "https://www.shadertoy.com/view/4dcGW2",
+        "Type": "Shadertoy",
+        "Passes": [
+            "BufferD",
+            "BufferA",
+            "BufferB",
+            "BufferC",
+            "Image"
+        ],
+        "BufferA": {
+            "Shader": "ExpansiveReactionDiffusion-BufferA.frag",
+            "Channels": [
+                {
+                    "Type": "Buffer",
+                    "Name": "BufferA",
+                    "Filter": "linear",
+                    "Wrap": "clamp"
+                },
+                {
+                    "Type": "Buffer",
+                    "Name": "BufferC",
+                    "Filter": "linear",
+                    "Wrap": "clamp"
+                },
+                {
+                    "Type": "Buffer",
+                    "Name": "BufferD",
+                    "Filter": "linear",
+                    "Wrap": "clamp"
+                },
+                {
+                    "Type": "Texture2D",
+                    "Name": "Textures/RGBA-Noise-Medium.png",
+                    "Filter": "mipmap",
+                    "Wrap": "repeat",
+                    "VFlip": true
+                }
+            ]
+        },
+        "BufferB": {
+            "Shader": "ExpansiveReactionDiffusion-BufferB.frag",
+            "Channels": [
+                {
+                    "Type": "Buffer",
+                    "Name": "BufferA",
+                    "Filter": "linear",
+                    "Wrap": "clamp"
+                }
+            ]
+        },
+        "BufferC": {
+            "Shader": "ExpansiveReactionDiffusion-BufferC.frag",
+            "Channels": [
+                {
+                    "Type": "Buffer",
+                    "Name": "BufferB",
+                    "Filter": "linear",
+                    "Wrap": "clamp"
+                }
+            ]
+        },
+        "BufferD": {
+            "Shader": "ExpansiveReactionDiffusion-BufferD.frag",
+            "Channels": [
+                {
+                    "Type": "Buffer",
+                    "Name": "BufferA",
+                    "Filter": "linear",
+                    "Wrap": "clamp"
+                }
+            ]
+        },
+        "Image": {
+            "Shader": "ExpansiveReactionDiffusion-Image.frag",
+            "Channels": [
+                {
+                    "Type": "Buffer",
+                    "Name": "BufferA",
+                    "Filter": "linear",
+                    "Wrap": "clamp"
+                },
+                {
+                    "Type": "Buffer",
+                    "Name": "BufferC",
+                    "Filter": "linear",
+                    "Wrap": "clamp"
+                },
+                null,
+                {
+                    "Type": "Texture2D",
+                    "Name": "Textures/RGBA-Noise-Medium.png",
+                    "Filter": "mipmap",
+                    "Wrap": "repeat",
+                    "VFlip": true
+                }
+            ]
+        }
+    }
+}

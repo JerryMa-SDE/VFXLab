@@ -1,6 +1,9 @@
 #pragma once
 
 #include "rad/VulkanEngine/Framework/VulkanWindow.h"
+#include "rad/IO/JsonDoc.h"
+
+class Effect;
 
 class VFXLab : public VulkanWindow
 {
@@ -33,9 +36,13 @@ public:
 
 private:
     const char* GetMouseButtonName(Uint8 button);
+    bool LoadEffect(const rad::FilePath& filePath);
 
     uint32_t m_backBufferCount = 0;
     rad::Ref<VulkanImage> m_renderTarget;
     rad::Ref<VulkanImage> m_depthStencil;
+
+    std::vector<rad::Ref<Effect>> m_effects;
+    rad::Ref<rad::JsonDoc> m_doc;
 
 }; // class VFXLab

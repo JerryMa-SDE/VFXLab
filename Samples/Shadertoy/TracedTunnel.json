@@ -1,0 +1,31 @@
+{
+    "Effects": [
+        "TracedTunnel"
+    ],
+    "TracedTunnel": {
+        "Description": "https://www.shadertoy.com/view/tdjfDR",
+        "Type": "Shadertoy",
+        "Passes": [
+            "Image"
+        ],
+        "Image": {
+            "Shader": "TracedTunnel.frag",
+            "Channels": [
+                {
+                    "Type": "Texture2D",
+                    "Name": "Textures/Abstract3.jpg",
+                    "Filter": "mipmap",
+                    "Wrap": "repeat",
+                    "VFlip": true
+                },
+                {
+                    "Type": "Texture2D",
+                    "Name": "Textures/RustyMetal.jpg",
+                    "Filter": "mipmap",
+                    "Wrap": "repeat",
+                    "VFlip": true
+                }
+            ]
+        }
+    }
+}
