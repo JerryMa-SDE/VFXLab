@@ -125,8 +125,15 @@ void Shadertoy::Render()
 
         VkClearValue clearValues[1] = {};
         clearValues[0].color = {};
-        cmdBuffer->BeginRenderPass(m_renderPass.get(), pass.framebuffers[bufferIndex].get(),
-            clearValues);
+        if (m_useDynamicRendering)
+        {
+            cmdBuffer->BeginRendering(pass.colorBuffers[bufferIndex]->GetDefaultView(), nullptr);
+        }
+        else
+        {
+            cmdBuffer->BeginRenderPass(m_renderPass.get(), pass.framebuffers[bufferIndex].get(),
+                clearValues);
+        }
         cmdBuffer->BindPipeline(pass.pipeline.get());
         cmdBuffer->BindDescriptorSets(pass.pipeline.get(), m_pipelineLayout.get(),
             0, pass.descriptorSets[bufferIndex].get());
@@ -146,7 +153,14 @@ void Shadertoy::Render()
         cmdBuffer->SetScissors(scissor);
         cmdBuffer->Draw(3, 1, 0, 0);
 
-        cmdBuffer->EndRenderPass();
+        if (m_useDynamicRendering)
+        {
+            cmdBuffer->EndRendering();
+        }
+        else
+        {
+            cmdBuffer->EndRenderPass();
+        }
 
         pass.colorBuffers[bufferIndex]->SetCurrentPipelineStage(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
         pass.colorBuffers[bufferIndex]->SetCurrentAccessFlags(VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
@@ -198,7 +212,7 @@ void Shadertoy::CreateResources()
                         (const char8_t*)channelInfo.name.c_str();
                     if (rad::Exists(imagePath))
                     {
-                        m_textures[channelInfo.name] = Vulkan::CreateImage2DFromFile(m_device,
+                        m_textures[channelInfo.name] = VulkanTexture::CreateImage2DFromFile(m_device,
                             (const char*)imagePath.u8string().c_str(), true);
                     }
                     else
@@ -281,11 +295,14 @@ void Shadertoy::CreateColorBuffers(uint32_t width, uint32_t height)
                 VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
                 VK_IMAGE_USAGE_SAMPLED_BIT // color buffer can be sampled as texture
             );
-            pass.framebuffers[bufferIndex] = m_device->CreateFramebuffer(m_renderPass.get(),
-                pass.colorBuffers[bufferIndex]->GetDefaultView(),
-                m_renderWidth,
-                m_renderHeight
-            );
+            if (!m_useDynamicRendering)
+            {
+                pass.framebuffers[bufferIndex] = m_device->CreateFramebuffer(m_renderPass.get(),
+                    pass.colorBuffers[bufferIndex]->GetDefaultView(),
+                    m_renderWidth,
+                    m_renderHeight
+                );
+            }
         }
     }
 
@@ -298,12 +315,15 @@ void Shadertoy::CreateColorBuffers(uint32_t width, uint32_t height)
     );
     lastPass.colorBuffers[0] = m_colorBuffer;
     lastPass.colorBuffers[1] = m_colorBuffer;
-    lastPass.framebuffers[0] = m_device->CreateFramebuffer(m_renderPass.get(),
-        lastPass.colorBuffers[0]->GetDefaultView(),
-        m_renderWidth,
-        m_renderHeight
-    );
-    lastPass.framebuffers[1] = lastPass.framebuffers[0];
+    if (!m_useDynamicRendering)
+    {
+        lastPass.framebuffers[0] = m_device->CreateFramebuffer(m_renderPass.get(),
+            lastPass.colorBuffers[0]->GetDefaultView(),
+            m_renderWidth,
+            m_renderHeight
+        );
+        lastPass.framebuffers[1] = lastPass.framebuffers[0];
+    }
 }
 
 void Shadertoy::CreatePipelines()
@@ -388,7 +408,14 @@ void Shadertoy::CreatePipelines()
         createInfo->m_inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         createInfo->SetColorBlendDisabled(0);
         createInfo->m_layout = m_pipelineLayout;
-        createInfo->m_renderPass = m_renderPass;
+        if (m_useDynamicRendering)
+        {
+            createInfo->SetRenderingInfo(m_colorFormat);
+        }
+        else
+        {
+            createInfo->m_renderPass = m_renderPass;
+        }
         pass.pipeline = m_device->CreateGraphicsPipeline(createInfo);
 
         for (size_t bufferIndex = 0; bufferIndex < 2; ++bufferIndex)

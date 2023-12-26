@@ -89,6 +89,7 @@ private:
     std::map<std::string, ShaderPass> m_passes;
     std::map<std::string, rad::Ref<VulkanImage>> m_textures;
 
+    bool m_useDynamicRendering = false;
     rad::Ref<VulkanRenderPass> m_renderPass;
     VkFormat m_colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
     float m_renderRatioX = 1.0f;

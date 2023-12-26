@@ -37,12 +37,25 @@ bool Shadertoy::Load(const rad::JsonValueRef jConfig)
         m_renderRatioY = jRenderRatio[1].Get(1.0f);
     }
 
+    VulkanPhysicalDevice* physicalDevice = m_device->GetPhysicalDevice();
+    if (physicalDevice->IsDynamicRenderingSupported())
+    {
+        m_useDynamicRendering = true;
+    }
+    else
+    {
+        m_useDynamicRendering = false;
+    }
+
     int drawWidth = 0;
     int drawHeight = 0;
     m_window->GetDrawableSize(&drawWidth, &drawHeight);
 
     CreateResources();
-    CreateRenderPasses();
+    if (!m_useDynamicRendering)
+    {
+        CreateRenderPasses();
+    }
     CreateColorBuffers(drawWidth, drawHeight);
     CreatePipelines();
     UpdateResourceBindings();
