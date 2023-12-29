@@ -1,5 +1,5 @@
 #include "VFXLab.h"
-#include "rad/DirectMedia/Application.h"
+#include "rad/DirectMedia/Core/Application.h"
 #include "rad/IO/Logging.h"
 
 int main(int argc, char* argv[])
