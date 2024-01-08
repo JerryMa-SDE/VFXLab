@@ -1,5 +1,6 @@
 #include "Shadertoy.h"
 #include "Logging.h"
+#include "rad/VulkanEngine/Rendering/VulkanTexture.h"
 
 Shadertoy::Shadertoy(VulkanWindow* window) :
     Effect(window, EffectType::ShaderToy)
@@ -212,7 +213,7 @@ void Shadertoy::CreateResources()
                         (const char8_t*)channelInfo.name.c_str();
                     if (rad::Exists(imagePath))
                     {
-                        m_textures[channelInfo.name] = VulkanTexture::CreateImage2DFromFile(m_device,
+                        m_textures[channelInfo.name] = CreateVulkanImage2DFromFile(m_device,
                             (const char*)imagePath.u8string().c_str(), true);
                     }
                     else
